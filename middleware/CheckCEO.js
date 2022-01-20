@@ -1,11 +1,10 @@
-const { User } = require("../Models/User")
 const Jwt = require("jsonwebtoken")
 const { Company } = require("../Models/Company")
 
-const CheckCEO = async (req, res, next) => {
+const CheckCEO = async (req , res , next) => {
   try {
     const token = req.header("Authorization")
-    if (!token) return res.status(401).send("You Nedd Token")
+    if (!token) return res.status(401).send("You Need Token")
     const decryptedToken = Jwt.verify(token, process.env.JWT_SECRET_KEY)
     const userId = decryptedToken.id
     const CEO = await Company.findOne({ CEO: userId })

@@ -16,7 +16,6 @@ const posts = require("./Routes/posts")
 require("dotenv").config()
 const cors = require("cors")
 
-
 mongoose
   .connect("mongodb://localhost:27017/finalProjectTest")
   .then(() => console.log("Mongoose is Connected"))
@@ -27,18 +26,16 @@ mongoose
 const app = express()
 app.use(express.json())
 app.use(cors())
-app.use("/api/auth" , users)
-app.use("/api/jobs" , jobs )
-app.use("/api/company" , company )
-app.use("/api/skills" , skills )
-app.use("/api/interesting" , interesting )
-app.use("/api/education" , education )
-app.use("/api/experience" , experience )
-app.use("/api/certificates" , certificates )
-app.use("/api/posts" , posts )
+app.use("/api/auth", users)
+app.use("/api/jobs", jobs)
+app.use("/api/company", company)
+app.use("/api/skills", skills)
+app.use("/api/interesting", interesting)
+app.use("/api/education", education)
+app.use("/api/experience", experience)
+app.use("/api/certificates", certificates)
+app.use("/api/posts", posts)
 
-
-
-app.listen(5000 , () => {
-  console.log("The server is listening on port" , 5000)
+app.listen(5000, () => {
+  console.log("The server is listening on port", 5000)
 })

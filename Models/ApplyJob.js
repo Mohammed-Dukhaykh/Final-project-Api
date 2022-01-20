@@ -5,15 +5,13 @@ const ApplyJobSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   email: String,
+  phoneNumber: Number,
   skills: [
     {
       type: mongoose.Types.ObjectId,
-      ref: "Skills",
+      ref: "Skill",
     },
   ],
-  phoneNumber: {
-    type: Number,
-  },
   owner: {
     type: mongoose.Types.ObjectId,
     ref: "User",
@@ -44,7 +42,7 @@ const ApplyJobSchema = new mongoose.Schema({
 
 const ApplyJobJoi = Joi.object({
   skills: Joi.array().items(Joi.ObjectId()).min(1).required(),
-  phoneNumber: Joi.string().min(10).max(10).required(),
+  phoneNumber: Joi.number().min(10).required(),
   answers: Joi.array().items(
     Joi.object({
       answer: Joi.string().required(),

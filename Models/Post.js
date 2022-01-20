@@ -6,30 +6,26 @@ const PostSchema = new mongoose.Schema({
   description: String,
   ownerUser: {
     type: mongoose.Types.ObjectId,
-    ref : "User"
+    ref: "User",
   },
-  ownerCompany : {
-      type : mongoose.Types.ObjectId ,
-      ref : "Company"
-  }
+  ownerCompany: {
+    type: mongoose.Types.ObjectId,
+    ref: "Company",
+  },
 })
 
-
 const PostJoi = Joi.object({
-    photo : Joi.string().uri().min(9).max(1000).required(),
-    description : Joi.string().min(5).max(100).required() ,
+  photo: Joi.string().uri().min(9).max(1000).required(),
+  description: Joi.string().min(5).max(100).required(),
 })
 
 const PostEditJoi = Joi.object({
-    photo : Joi.string().uri().min(9).max(1000),
-    description : Joi.string().min(5).max(100) ,
+  photo: Joi.string().uri().min(9).max(1000),
+  description: Joi.string().min(5).max(100),
 })
 
-
-const Post = mongoose.model("Post" , PostSchema)
-
+const Post = mongoose.model("Post", PostSchema)
 
 module.exports.Post = Post
 module.exports.PostJoi = PostJoi
 module.exports.PostEditJoi = PostEditJoi
-

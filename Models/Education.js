@@ -29,7 +29,7 @@ const educationJoi = Joi.object({
     end : Joi.date().required() ,
 })
 const educationEditJoi = Joi.object({
-    university : Joi.string().min(2).max(30) ,
+    university : Joi.string().min(2).max(50) ,
     degree : Joi.string().valid("Associate" , "Bachelor's" , "Master's" , "Doctoral"),
     field : Joi.string().min(2).max(50) ,
     start : Joi.date() ,

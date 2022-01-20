@@ -55,7 +55,33 @@ router.post("/company", CheckCompany, ValidateBody(PostJoi), async (req, res) =>
     })
     await Company.findByIdAndUpdate(req.companyId, { $push: { posts: postBody._id } })
     await postBody.save()
-    res.json(postBody)
+    res.json("The Post is Added")
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message)
+  }
+})
+router.put("/company/:id", CheckCompany, ValidateBody(PostEditJoi), async (req, res) => {
+  try {
+    const { photo, description } = req.body
+    const companyPost = await Post.findById(req.params.id)
+    if (companyPost.ownerCompany.toString() != req.companyId._id) return res.status(403).json("UnAuthorization Action")
+    const post = await Post.findByIdAndUpdate(req.params.id, { $set: { photo, description } }, { new: true })
+    if (!post) return res.status(404).json("The Post Not found")
+    res.send("The Post is Update")
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message)
+  }
+})
+router.put("/:id", checkToken, ValidateBody(PostJoi), async (req, res) => {
+  try {
+    const { photo, description } = req.body
+    const postFound = await Post.findById(req.params.id)
+    if (postFound.ownerUser.toString() != req.userId) return res.status(403).json("UnAuthorization Action")
+    const post = await Post.findByIdAndUpdate(req.params.id, { $set: { photo, description } }, { new: true })
+    if (!post) return res.status(404).json("The Post Not found")
+    res.send("The Post is Update")
   } catch (error) {
     console.log(error)
     res.status(500).json(error.message)

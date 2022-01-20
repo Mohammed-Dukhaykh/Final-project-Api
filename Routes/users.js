@@ -1,5 +1,13 @@
 const express = require("express")
-const { User, UserSignupJoi, UserLoginJoi, profileJoi, UserAdminSignupJoi, ResumeJoi } = require("../Models/User")
+const {
+  User,
+  UserSignupJoi,
+  UserLoginJoi,
+  profileJoi,
+  UserAdminSignupJoi,
+  ResumeJoi,
+  summaryJoi,
+} = require("../Models/User")
 const { Company, CompanyLoginJoi, CompanySignupJoi } = require("../Models/Company")
 const ValidateBody = require("../middleware/ValidateBody")
 const Jwt = require("jsonwebtoken")
@@ -14,11 +22,11 @@ const { Job } = require("../Models/Job")
 const { Skill, SkillsJoi } = require("../Models/Skills")
 const { educationJoi, Education, educationEditJoi } = require("../Models/Education")
 const { Post } = require("../Models/Post")
-const { populate } = require("../Models/Visitor")
+const nodemailer = require("nodemailer")
 
 const router = express.Router()
 
-router.get("/", CheckAdmin, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const users = await User.find()
       .select("-password -__v")
@@ -73,6 +81,7 @@ router.post("/signup-admin", CheckAdmin, ValidateBody(UserAdminSignupJoi), async
       avatar,
       role: "Admin",
       emailVerified: true,
+      Work,
     })
     await user.save()
     delete user._doc.password
@@ -96,25 +105,25 @@ router.post("/signup", ValidateBody(UserSignupJoi), async (req, res) => {
       password: hash,
       email,
       avatar,
-      // emailVerified: false,
+      emailVerified: false,
     })
-    // const transporter = nodemailer.createTransport({
-    //   service: "gmail",
-    //   port: 587,
-    //   secure: false,
-    //   auth: {
-    //     user: process.env.SENDER_EMAIL,
-    //     pass: process.env.SENDER_PASSWORD,
-    //   },
-    // })
-    // const token = Jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: "16d" })
-    // await transporter.sendMail({
-    //   from: `"Mohammed Dukhaykh"  <${process.env.SENDER_EMAIL}>`,
-    //   to: email, // list of receivers
-    //   subject: "email check", // Subject line
-    //   html: `We want to steal you Click here to confirm your theft.
-    //   <a href="http://localhost:3000/email_verified/${token}">verify user </a>`, // html body
-    // })
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.SENDER_EMAIL,
+        pass: process.env.SENDER_PASSWORD,
+      },
+    })
+    const token = Jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: "16d" })
+    await transporter.sendMail({
+      from: `"Mohammed Dukhaykh"  <${process.env.SENDER_EMAIL}>`,
+      to: email, // list of receivers
+      subject: "email check", // Subject line
+      html: `We want to steal you Click here to confirm your theft.
+      <a href="http://localhost:3000/email_verified/${token}">verify user </a>`, // html body
+    })
 
     await user.save()
     delete user._doc.password
@@ -124,18 +133,18 @@ router.post("/signup", ValidateBody(UserSignupJoi), async (req, res) => {
     res.status(500).json(error.message)
   }
 })
-router.get("/email_verified/:token", async (req, res) => {
-  try {
-    const decrypted = Jwt.verify(req.params.token, process.env.JWT_SECRET_KEY)
-    const userId = decrypted.id
-    const user = await User.findByIdAndUpdate(userId, { $set: { emailVerified: true } })
-    if (!user) return res.status(404).send("User not found")
-    res.send("User Verified")
-  } catch (error) {
-    console.log(error)
-    res.status(500).json(error.message)
-  }
-})
+// router.get("/email_verified/:token", async (req, res) => {
+//   try {
+//     const decrypted = Jwt.verify(req.params.token, process.env.JWT_SECRET_KEY)
+//     const userId = decrypted.id
+//     const user = await User.findByIdAndUpdate(userId, { $set: { emailVerified: true } })
+//     if (!user) return res.status(404).send("User not found")
+//     res.send("User Verified")
+//   } catch (error) {
+//     console.log(error)
+//     res.status(500).json(error.message)
+//   }
+// })
 
 router.post("/login", ValidateBody(UserLoginJoi), async (req, res) => {
   try {
@@ -185,15 +194,32 @@ router.get("/profile", checkToken, async (req, res) => {
           },
         },
       })
+      .populate("skills")
       .populate({
         path: "Work",
-        select: "companyName avatar",
+        populate: {
+          path: "jobs",
+        },
+        populate: {
+          path: "HR",
+          select: "firstName lastName email avatar ",
+        },
       })
       .populate("Education")
       .populate("Experience")
       .populate("Certificates")
       .populate("interesting")
       .populate("Resume")
+      .populate("followwnig")
+      .populate("followers") 
+      .populate ({
+        path : "profileWatch" ,
+        populate : {
+          path : "visitor"
+        }
+      })
+      .populate("jobInterest")
+      .populate("posts")
     if (!user) return res.status(404).send("The user not Found")
     res.json(user)
   } catch (error) {
@@ -314,6 +340,16 @@ router.put("/resume", checkToken, ValidateBody(ResumeJoi), async (req, res) => {
     const user = await User.findByIdAndUpdate(req.userId, { $set: { Resume: resume } }, { new: true })
     if (!user) return res.status(404).json("The Resume Not Found")
     res.json(user)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message)
+  }
+})
+router.post("/summary", checkToken, ValidateBody(summaryJoi), async (req, res) => {
+  try {
+    const { summary } = req.body
+    await User.findByIdAndUpdate(req.userId, { $set: { summary } })
+    res.send("Your add Summary")
   } catch (error) {
     console.log(error)
     res.status(500).json(error.message)

@@ -26,17 +26,38 @@ router.get("/", async (req, res) => {
       })
       .populate({
         path: "HR",
-        select: "firstName lastName avatar",
+        select: "-isCEO -jobInterest -Work -JobsApply -isHR -password -emailVerified",
       })
       .populate({
         path: "Users",
-        select: "firstName lastName avatar",
+        select: "-isCEO -jobInterest -Work -JobsApply -isHR -password -emailVerified",
       })
       .populate("posts")
       .populate({
         path: "jobs",
-        populate: "usersApply",
+        populate : {
+          path : "usersApply" ,
+          populate : {
+            path : "skills"
+          }
+        },
+      }) 
+      .populate({
+        path: "jobs",
+        populate : {
+          path : "employeeId"
+        },
       })
+      //   .populate({
+      //     path: "jobs",
+      //     populate : {
+      //       path : "usersApply"
+      //     },
+      //   populate : {
+      //     path : "employeeId" ,
+      //     select : "firstName lastName email avatar"
+      //   }
+      // })
     res.json(company)
   } catch (error) {
     console.log(error)
@@ -61,7 +82,7 @@ router.post("/Add", checkToken, ValidateBody(CompanySignupJoi), async (req, res)
       commenicalNumber,
       CEO: req.userId,
     })
-    await User.findByIdAndUpdate(req.userId, { Work: newCompany._id })
+    await User.findByIdAndUpdate(req.userId, { Work: newCompany._id, isCEO: true })
     await newCompany.save()
     delete newCompany._doc.password
     res.send(newCompany)
@@ -102,7 +123,7 @@ router.get("/profile", CheckCompany, async (req, res) => {
   }
 })
 
-router.post("/add-HR/:id", CheckCEO, checkToken, async (req, res) => {
+router.post("/add-HR/:id", CheckCompany, async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
     if (!user) return res.status(404).send("User not found")
@@ -113,9 +134,9 @@ router.post("/add-HR/:id", CheckCEO, checkToken, async (req, res) => {
     const checkUser = foundUser.Users.includes(req.params.id.toString())
     const checkHr = foundUser.HR.includes(req.params.id.toString())
     if (checkUser || checkHr || checkWork) return res.status(400).json("The User already employee in company")
-    const AddHr = await Company.findByIdAndUpdate(company, { $push: { HR: req.params.id } }, { new: true })
-    await User.findByIdAndUpdate(req.params.id, { $set: { Work: company } })
-    res.json(AddHr)
+    await Company.findByIdAndUpdate(company, { $push: { HR: req.params.id } }, { new: true })
+    await User.findByIdAndUpdate(req.params.id, { Work: company, isHR: true })
+    res.json("the user is added")
   } catch (error) {
     console.log(error)
     res.status(500).json(error.message)
@@ -133,7 +154,7 @@ router.post("/add-users/:id", CheckCompany, async (req, res) => {
     const checkHr = foundCompany.HR.includes(req.params.id.toString())
     if (checkUser || checkHr) return res.status(400).json("The User already employee in company")
     const companyUpdate = await Company.findByIdAndUpdate(company, { $push: { Users: req.params.id } }, { new: true })
-    await User.findByIdAndUpdate(req.params.id, { $set: { Work: company } })
+    await User.findByIdAndUpdate(req.params.id, { Work: company })
     res.json(companyUpdate)
   } catch (error) {
     console.log(error)
@@ -146,8 +167,28 @@ router.delete("/delete-HR/:id", CheckId, CheckCEO, async (req, res) => {
     const company = Ceo.Work
     const userCompany = await Company.findOne({ HR: req.params.id })
     if (!userCompany) return res.status(404).json("The User Not Found In company")
-    if (userCompany._id !== company) return res.status(403).json("UnAuthorization Action")
+    // return console.log(userCompany._id.toString() != company)
+    if (userCompany._id.toString() != company) return res.status(403).json("UnAuthorization Action")
     const editCompany = await Company.findByIdAndUpdate(company, { $pull: { HR: req.params.id } }, { new: true })
+    await User.findByIdAndUpdate(req.params.id, { $set: { isHR: false, Work: null } })
+    res.json(editCompany)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message)
+  }
+})
+router.delete("/delete-users/:id", CheckId, CheckCompany, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId)
+    if (!user) return res.status(404).json("The User Not Found")
+    const userCompany = await Company.findOne({ Users: req.params.id })
+    if (req.companyId._id.toString() != userCompany._id) return res.status(403).json("UnAuthorization Action")
+    const editCompany = await Company.findByIdAndUpdate(
+      req.companyId,
+      { $pull: { Users: req.params.id } },
+      { new: true }
+    )
+    await User.findByIdAndUpdate(req.params.id, { $set: { Work: null } })
     res.json(editCompany)
   } catch (error) {
     console.log(error)
@@ -159,8 +200,9 @@ router.delete("/:id", CheckId, CheckAdminCompany, async (req, res) => {
     const company = await Company.findById(req.params.id)
     if (!company) return res.status(404).send("The Company not Found")
     const userFound = await User.findById(req.userId)
+    if (!userFound) return res.status(400).json("The user not Found")
     if (userFound.role !== "Admin" && company.CEO.toString() != req.userId.toString())
-      return res.status(403).json("UnAuthorization aa Action")
+      return res.status(403).json("UnAuthorization  Action")
     await Company.findByIdAndDelete(req.params.id)
     const jobFound = await Job.find({ owner: req.params.id })
     const jobId = jobFound.map(jobObject => jobObject._id)
@@ -170,7 +212,7 @@ router.delete("/:id", CheckId, CheckAdminCompany, async (req, res) => {
     )
     await Promise.all(updateUser)
     await Job.deleteMany({ owner: company })
-    await User.updateMany({ Work: req.params.id }, { $set: { Work: null } })
+    await User.updateMany({ Work: req.params.id }, { $set: { Work: null, isHR: false, isCEO: false } })
     await Post.deleteMany({ ownerCompany: req.params.id })
     res.json("The Company is Delete")
   } catch (error) {

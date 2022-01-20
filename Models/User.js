@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 const Joi = require("joi")
 const joiObjectid = require("joi-objectid")
+const { boolean } = require("joi")
 Joi.ObjectId = joiObjectid(Joi)
 
 const UserSchema = new mongoose.Schema({
@@ -9,6 +10,7 @@ const UserSchema = new mongoose.Schema({
   email: String,
   password: String,
   avatar: String,
+
   JobsApply: [
     {
       type: mongoose.Types.ObjectId,
@@ -94,6 +96,14 @@ const UserSchema = new mongoose.Schema({
       ref: "Post",
     },
   ],
+  isHR: {
+    type: Boolean,
+    default: false,
+  },
+  isCEO: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const UserSignupJoi = Joi.object({
@@ -154,6 +164,9 @@ const interestingprofile = Joi.object({
 const ResumeJoi = Joi.object({
   resume: Joi.string().uri().min(5).max(1000).required(),
 })
+const summaryJoi = Joi.object({
+  summary: Joi.string().min(1).max(10000).required(),
+})
 
 const User = mongoose.model("User", UserSchema)
 
@@ -165,3 +178,4 @@ module.exports.profileJoi = profileJoi
 module.exports.skillprofile = skillprofile
 module.exports.interestingprofile = interestingprofile
 module.exports.ResumeJoi = ResumeJoi
+module.exports.summaryJoi = summaryJoi

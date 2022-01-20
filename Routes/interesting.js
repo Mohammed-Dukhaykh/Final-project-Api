@@ -64,9 +64,11 @@ router.post("/profile-interesting", checkToken, ValidateBody(interestingprofile)
     if (interestSet.size < interesting.length) return res.status(404).json("There is duplicated Interesting")
     const interestFound = await Interesting.find({ _id: { $in: interesting } })
     if (interestFound.length < interesting.length) return res.status(404).json("There are some Interest Missing")
-    const userFound = await User.findByIdAndUpdate(user, { $addToSet: { interesting: interesting } }, { new: true }).select(
-      "-password"
-    )
+    const userFound = await User.findByIdAndUpdate(
+      user,
+      { $addToSet: { interesting: interesting } },
+      { new: true }
+    ).select("-password")
     res.json(userFound)
   } catch (error) {
     console.log(error)
@@ -86,6 +88,17 @@ router.put("/profile/interesting", checkToken, ValidateBody(interestingprofile),
     )
     if (!userFound) return res.status(404).json("The Interesting Not Found")
     res.json(userFound)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message)
+  }
+})
+router.delete("/profile-interesting/:id", CheckId, checkToken, async (req, res) => {
+  try {
+    const interestFound = await Interesting.findById(req.params.id)
+    if (!interestFound) return res.status(404).json("The Interesting Not Found")
+    await User.findByIdAndUpdate(req.userId, { $pull: { interesting: req.params.id } })
+    res.send("The Interest is Delete")
   } catch (error) {
     console.log(error)
     res.status(500).json(error.message)
