@@ -86,37 +86,6 @@ router.post("/Add", checkToken, ValidateBody(CompanySignupJoi), async (req, res)
   }
 })
 
-// router.get("/profile", CheckCompany, async (req, res) => {
-//   try {
-//     const userFound = await User.findById(req.userId)
-//     const companyFound = userFound.Work
-//     const company = await Company.findById(companyFound)
-//       .select("-password -__v ")
-//       .populate({
-//         path: "jobs",
-//         select: "-__v -owner",
-
-//         populate: {
-//           path: "usersApply",
-//           select: "-jobId -__v",
-//         },
-//       })
-//       .populate({
-//         path: "HR",
-//         select: "-__v -password -role -Work -JobsApply ",
-//       })
-//       .populate({
-//         path: "CEO",
-//         select: "-__v -password -role -Work -JobsApply ",
-//       })
-//     if (!company) return res.status(404).send("The company not Found")
-//     res.json(company)
-//   } catch (error) {
-//     console.log(error)
-//     res.status(500).json(error.message)
-//   }
-// })
-
 router.post("/add-HR/:id", CheckCompany, async (req, res) => {
   try {
     const user = await User.findById(req.params.id)

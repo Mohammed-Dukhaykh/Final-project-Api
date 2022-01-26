@@ -156,7 +156,6 @@ router.post("/apply/:id", CheckId, ValidateBody(ApplyJobJoi), checkToken, async 
         })
     )
 
-    // return console.log("hhhh", newAnswer)
     const answerPromise = newAnswer.map(answer => answer.save())
     await Promise.all(answerPromise)
     const answerId = newAnswer.map(answer => answer._id)
@@ -212,47 +211,47 @@ router.put(
         { $set: { progress: progress } },
         { new: true }
       )
-      if (progress == "Accept") {
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          port: 587,
-          secure: false,
-          auth: {
-            user: "Test3705968@gmail.com",
-            pass: "MoHmmaD3705968aSd$",
-          },
-        })
-        await transporter.sendMail({
-          from: '"Mohammed Dukhaykh" <Test3705968@gmail.com>', // sender address
-          to: userOwner.email, // list of receivers
-          subject: `Job Update ${job.title} `, // Subject line
-          html: `dear ${userOwner.firstName} ${userOwner.lastName} Congratulations, you have been initially accepted into a job
-          ${job.title} in ${job.owner.companyName} and we will contact you to schedule an interview ${job.owner.companyName} Team `, // html body
-        })
-        res.json(newProgress)
-      } else if (progress == "No Accept") {
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          port: 587,
-          secure: false,
-          auth: {
-            user: "Test3705968@gmail.com",
-            pass: "MoHmmaD3705968aSd$",
-          },
-        })
-        await transporter.sendMail({
-          from: '"Mohammed Dukhaykh" <Test3705968@gmail.com>', // sender address
-          to: userOwner.email, // list of receivers
-          subject: `Job Update ${job.title}`, // Subject line
-          html: `dear ${userOwner.firstName} ${userOwner.lastName} , thank you for showing interest in joining ${job.owner.companyName}.
-          Following the best in class recruitment methods for selection, we followed strict methods and procedures where we continuously rank candidates based on a number of
-          factors and criteria. Candidates go through a number of steps before we make our selection to the next step
-          It was very difficult for us to make the selection. Regretfully, we would like to inform you that we have
-          decided to pursue more suitable candidates for ${job.title}
-          best Regards ${job.owner.companyName} Team. `, // html body
-        })
-        res.json(newProgress)
-      }
+      // if (progress == "Accept") {
+      //   const transporter = nodemailer.createTransport({
+      //     service: "gmail",
+      //     port: 587,
+      //     secure: false,
+      //     auth: {
+      //       user: "Test3705968@gmail.com",
+      //       pass: "MoHmmaD3705968aSd$",
+      //     },
+      //   })
+      //   await transporter.sendMail({
+      //     from: '"Mohammed Dukhaykh" <Test3705968@gmail.com>', // sender address
+      //     to: userOwner.email, // list of receivers
+      //     subject: `Job Update ${job.title} `, // Subject line
+      //     html: `dear ${userOwner.firstName} ${userOwner.lastName} Congratulations, you have been initially accepted into a job
+      //     ${job.title} in ${job.owner.companyName} and we will contact you to schedule an interview ${job.owner.companyName} Team `, // html body
+      //   })
+      //   res.json(newProgress)
+      // } else if (progress == "No Accept") {
+      //   const transporter = nodemailer.createTransport({
+      //     service: "gmail",
+      //     port: 587,
+      //     secure: false,
+      //     auth: {
+      //       user: "Test3705968@gmail.com",
+      //       pass: "MoHmmaD3705968aSd$",
+      //     },
+      //   })
+      //   await transporter.sendMail({
+      //     from: '"Mohammed Dukhaykh" <Test3705968@gmail.com>', // sender address
+      //     to: userOwner.email, // list of receivers
+      //     subject: `Job Update ${job.title}`, // Subject line
+      //     html: `dear ${userOwner.firstName} ${userOwner.lastName} , thank you for showing interest in joining ${job.owner.companyName}.
+      //     Following the best in class recruitment methods for selection, we followed strict methods and procedures where we continuously rank candidates based on a number of
+      //     factors and criteria. Candidates go through a number of steps before we make our selection to the next step
+      //     It was very difficult for us to make the selection. Regretfully, we would like to inform you that we have
+      //     decided to pursue more suitable candidates for ${job.title}
+      //     best Regards ${job.owner.companyName} Team. `, // html body
+      //   })
+      res.json(newProgress)
+      // }
     } catch (error) {
       console.log(error)
       res.status(500).json(error.message)

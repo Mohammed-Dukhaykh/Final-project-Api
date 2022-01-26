@@ -286,7 +286,7 @@ router.put("/profile", checkToken, ValidateBody(profileJoi), async (req, res) =>
     }
     const userEdit = await User.findByIdAndUpdate(
       req.userId,
-      { $set: { firstName, lastName, password: hash, avatar } },
+      { $set: { firstName, lastName, password: hash, avatar ,  Work } },
       { new: true }
     )
     delete userEdit._doc.password

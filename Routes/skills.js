@@ -68,7 +68,6 @@ router.post("/profile-skills", checkToken, ValidateBody(skillprofile), async (re
     if (skillsFound.length < skill.length) return res.status(404).json("There are some Skill Missing")
 
     const user = await User.findByIdAndUpdate(userFound, { $addToSet: { skills: skill } }, { new: true })
-    // const user = await User.findByIdAndUpdate(userFound, { $push: { skills: skill } }, { new: true })
     res.json(user)
   } catch (error) {
     console.log(error)
@@ -76,26 +75,7 @@ router.post("/profile-skills", checkToken, ValidateBody(skillprofile), async (re
   }
 })
 
-// router.put("/profile-skills/:id", CheckId, checkToken, ValidateBody(skillprofile), async (req, res) => {
-//   try {
-//     const { skill } = req.body
-//     const userFound = await User.findById(req.userId)
-//     // const skillSet = new Set(skill)
-//     // if (skillSet.size < skill.length) return res.status(404).json("There is duplicated Skills")
-//     // const skillsFound = await Skill.find({ _id: { $in: skill } })
-//     // if (skillsFound.length < skill.length) return res.status(404).json("There are some Skill Missing")
-//     // const user = await User.findByIdAndUpdate(userFound, { $set: { skills: skill } }, { new: true }).select("-password")
-//     // if (!user) return res.status(404).json("The Skills Not Found")
-//     const skillFound = await Skill.findById(req.params.id)
-//     if (!skillFound) return res.status(404).json("The Skill Not Found")
-//     await User.findByIdAndUpdate(req.userId , {$set : {skills : skill}})
 
-//     res.json(user)
-//   } catch (error) {
-//     console.log(error)
-//     res.status(500).json(error.message)
-//   }
-// })
 router.delete("/profile-skills/:id", CheckId, checkToken, async (req, res) => {
   try {
     const skill = await Skill.findById(req.params.id)
