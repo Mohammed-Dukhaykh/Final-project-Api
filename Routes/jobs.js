@@ -12,6 +12,7 @@ const nodemailer = require("nodemailer")
 const CheckAdminCompany = require("../middleware/CheckAdminCompany")
 const { Question, QuestionJoi } = require("../Models/Question")
 const { Answer } = require("../Models/Answer")
+const { populate } = require("../Models/Visitor")
 
 const router = express.Router()
 
@@ -36,9 +37,15 @@ router.get("/", async (req, res) => {
           path: "answers",
           populate: "question",
         },
-        populate : "skills" ,
+      })
+      .populate({
+        path: "usersApply",
+        populate: {
+          path: "skills",
+        },
       })
       .populate("questions")
+      .populate("jobField")
     res.json(jobs)
   } catch (error) {
     console.log(error)
@@ -71,21 +78,22 @@ router.get("/company-job/:companyId", ValidateId("companyId"), async (req, res) 
 
 router.post("/", CheckCompany, ValidateBody(jobJoi), async (req, res) => {
   try {
-    const { title, description, poster } = req.body
+    const { title, description, poster, job, jobField } = req.body
     const companyFound = await User.findById(req.userId)
     const company = companyFound.Work
-    const job = new Job({
+    const jobFound = new Job({
       title,
       description,
       poster,
       owner: company,
       employeeId: req.userId,
+      jobField,
     })
-    await job.save()
+    await jobFound.save()
 
-    await Company.findByIdAndUpdate(company, { $push: { jobs: job._id } })
+    await Company.findByIdAndUpdate(company, { $push: { jobs: jobFound._id } })
 
-    res.json(job)
+    res.json(jobFound)
   } catch (error) {
     console.log(error)
     res.status(500).json(error.message)
@@ -128,7 +136,7 @@ router.put("/:jobId", CheckAdminCompany, ValidateBody(jobEditJoi), ValidateId("j
 
 router.post("/apply/:id", CheckId, ValidateBody(ApplyJobJoi), checkToken, async (req, res) => {
   try {
-    const { firstName, lastName, email, skills, Qualification, answers = [], ResumeCv , phoneNumber } = req.body
+    const { firstName, lastName, email, skills, Qualification, answers = [], ResumeCv, phoneNumber } = req.body
     const job = await Job.findById(req.params.id).populate("usersApply")
     if (!job) return res.status(404).send("The job not Found")
     const userFound = await User.findById(req.userId)
@@ -138,7 +146,7 @@ router.post("/apply/:id", CheckId, ValidateBody(ApplyJobJoi), checkToken, async 
 
     const questionFound = answers.map(answer => answer.question)
     const questionSet = new Set(questionFound)
-    if (questionSet.size != questionFound) return res.status(404).json("There is duplicated question")
+    if (questionSet.size < questionFound) return res.status(404).json("There is duplicated question")
     if (answers.length < job.questions.length) return res.status(400).send("Should Answer all Questions")
     const newAnswer = answers.map(
       answer =>
@@ -161,7 +169,7 @@ router.post("/apply/:id", CheckId, ValidateBody(ApplyJobJoi), checkToken, async 
       jobId: req.params.id,
       owner: req.userId,
       ResumeCv,
-      phoneNumber : phoneNumber ,
+      phoneNumber: phoneNumber,
       answers: answerId,
     })
 
@@ -204,47 +212,47 @@ router.put(
         { $set: { progress: progress } },
         { new: true }
       )
-      // if (progress == "Accept") {
-      //   const transporter = nodemailer.createTransport({
-      //     service: "gmail",
-      //     port: 587,
-      //     secure: false,
-      //     auth: {
-      //       user: "dukhaykh21@gmail.com",
-      //       pass: "qmpzhghg",
-      //     },
-      //   })
-      //   await transporter.sendMail({
-      //     from: '"Mohammed Dukhaykh" <dukhaykh21@gmail.com>', // sender address
-      //     to: userOwner.email, // list of receivers
-      //     subject: `Job Update ${job.title} `, // Subject line
-      //     html: `dear ${userOwner.firstName} ${userOwner.lastName} Congratulations, you have been initially accepted into a job
-      //     ${job.title} in ${job.owner.companyName} and we will contact you to schedule an interview ${job.owner.companyName} Team `, // html body
-      //   })
-      //   res.json(newProgress)
-      // } else if (progress == "No Accept") {
-      //   const transporter = nodemailer.createTransport({
-      //     service: "gmail",
-      //     port: 587,
-      //     secure: false,
-      //     auth: {
-      //       user: "dukhaykh21@gmail.com",
-      //       pass: "qmpzhghg",
-      //     },
-      //   })
-      //   await transporter.sendMail({
-      //     from: '"Mohammed Dukhaykh" <dukhaykh21@gmail.com>', // sender address
-      //     to: userOwner.email, // list of receivers
-      //     subject: `Job Update ${job.title}`, // Subject line
-      //     html: `dear ${userOwner.firstName} ${userOwner.lastName} , thank you for showing interest in joining ${job.owner.companyName}.
-      //     Following the best in class recruitment methods for selection, we followed strict methods and procedures where we continuously rank candidates based on a number of 
-      //     factors and criteria. Candidates go through a number of steps before we make our selection to the next step
-      //     It was very difficult for us to make the selection. Regretfully, we would like to inform you that we have 
-      //     decided to pursue more suitable candidates for ${job.title}
-      //     best Regards ${job.owner.companyName} Team. `, // html body
-      //   })
+      if (progress == "Accept") {
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          port: 587,
+          secure: false,
+          auth: {
+            user: "Test3705968@gmail.com",
+            pass: "MoHmmaD3705968aSd$",
+          },
+        })
+        await transporter.sendMail({
+          from: '"Mohammed Dukhaykh" <Test3705968@gmail.com>', // sender address
+          to: userOwner.email, // list of receivers
+          subject: `Job Update ${job.title} `, // Subject line
+          html: `dear ${userOwner.firstName} ${userOwner.lastName} Congratulations, you have been initially accepted into a job
+          ${job.title} in ${job.owner.companyName} and we will contact you to schedule an interview ${job.owner.companyName} Team `, // html body
+        })
         res.json(newProgress)
-      // }
+      } else if (progress == "No Accept") {
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          port: 587,
+          secure: false,
+          auth: {
+            user: "Test3705968@gmail.com",
+            pass: "MoHmmaD3705968aSd$",
+          },
+        })
+        await transporter.sendMail({
+          from: '"Mohammed Dukhaykh" <Test3705968@gmail.com>', // sender address
+          to: userOwner.email, // list of receivers
+          subject: `Job Update ${job.title}`, // Subject line
+          html: `dear ${userOwner.firstName} ${userOwner.lastName} , thank you for showing interest in joining ${job.owner.companyName}.
+          Following the best in class recruitment methods for selection, we followed strict methods and procedures where we continuously rank candidates based on a number of
+          factors and criteria. Candidates go through a number of steps before we make our selection to the next step
+          It was very difficult for us to make the selection. Regretfully, we would like to inform you that we have
+          decided to pursue more suitable candidates for ${job.title}
+          best Regards ${job.owner.companyName} Team. `, // html body
+        })
+        res.json(newProgress)
+      }
     } catch (error) {
       console.log(error)
       res.status(500).json(error.message)

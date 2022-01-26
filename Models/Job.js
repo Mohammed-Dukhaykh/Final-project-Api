@@ -39,6 +39,7 @@ const jobJoi = Joi.object({
   title: Joi.string().min(3).max(50).required(),
   description: Joi.string().min(10).max(10000).required(),
   poster: Joi.string().uri().min(3).max(1000).required(),
+  jobField: Joi.ObjectId().required(),
 })
 const jobEditJoi = Joi.object({
   title: Joi.string().min(3).max(50),

@@ -81,7 +81,6 @@ router.post("/signup-admin", CheckAdmin, ValidateBody(UserAdminSignupJoi), async
       avatar,
       role: "Admin",
       emailVerified: true,
-      Work,
     })
     await user.save()
     delete user._doc.password
@@ -105,29 +104,29 @@ router.post("/signup", ValidateBody(UserSignupJoi), async (req, res) => {
       password: hash,
       email,
       avatar,
-      emailVerified: false,
+      emailVerified: true,
     })
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.SENDER_EMAIL,
-        pass: process.env.SENDER_PASSWORD,
-      },
-    })
-    const token = Jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: "16d" })
-    await transporter.sendMail({
-      from: `"Mohammed Dukhaykh"  <${process.env.SENDER_EMAIL}>`,
-      to: email, // list of receivers
-      subject: "email check", // Subject line
-      html: `We want to steal you Click here to confirm your theft.
-      <a href="http://localhost:3000/email_verified/${token}">verify user </a>`, // html body
-    })
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   port: 587,
+    //   secure: false,
+    //   auth: {
+    //     user: process.env.SENDER_EMAIL,
+    //     pass: process.env.SENDER_PASSWORD,
+    //   },
+    // })
+    // const token = Jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: "16d" })
+    // await transporter.sendMail({
+    //   from: `"Mohammed Dukhaykh"  <${process.env.SENDER_EMAIL}>`,
+    //   to: email, // list of receivers
+    //   subject: "email check", // Subject line
+    //   html: `We want to steal you Click here to confirm your theft.
+    //   <a href="http://localhost:3000/email_verified/${token}">verify user </a>`, // html body
+    // })
 
     await user.save()
     delete user._doc.password
-    res.json("User Created , pleace Cheack Your Email for Verification link")
+    res.json("The Account is Created")
   } catch (error) {
     console.log(error)
     res.status(500).json(error.message)

@@ -12,16 +12,20 @@ const PostSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     ref: "Company",
   },
+  date : {
+    type : Date ,
+    default : Date.now
+  }
 })
 
 const PostJoi = Joi.object({
   photo: Joi.string().uri().min(9).max(1000).required(),
-  description: Joi.string().min(5).max(100).required(),
+  description: Joi.string().min(5).max(1000).required(),
 })
 
 const PostEditJoi = Joi.object({
   photo: Joi.string().uri().min(9).max(1000),
-  description: Joi.string().min(5).max(100),
+  description: Joi.string().min(5).max(1000),
 })
 
 const Post = mongoose.model("Post", PostSchema)

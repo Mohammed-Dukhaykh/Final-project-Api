@@ -8,18 +8,15 @@ const CertificatesSchema = new mongoose.Schema({
   },
   title: String,
   authority: String,
-  certificateFile: String,
 })
 
 const CertificatesJoi = Joi.object({
     title : Joi.string().min(3).max(100).required() ,
     authority : Joi.string().min(3).max(50).required() ,
-    certificateFile : Joi.string().uri().max(1000)
 })
 const CertificatesEditJoi = Joi.object({
     title : Joi.string().min(3).max(100) ,
     authority : Joi.string().min(3).max(50) ,
-    certificateFile : Joi.string().uri().max(1000)
 })
 
 const Certificate = mongoose.model("Certificate" , CertificatesSchema)

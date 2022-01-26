@@ -3,8 +3,6 @@ const Joi = require("joi")
 
 const CompanySchema = new mongoose.Schema({
   companyName: String,
-  email: String,
-  password: String,
   avatar: String,
   commenicalNumber: String,
   jobs: [
@@ -39,21 +37,11 @@ const CompanySchema = new mongoose.Schema({
 
 const CompanySignupJoi = Joi.object({
   companyName: Joi.string().min(2).max(100).required(),
-  email: Joi.string()
-    .email({ tlds: { allow: true } })
-    .min(2)
-    .max(200)
-    .required(),
-  password: Joi.string().min(6).max(100).required(),
   avatar: Joi.string().uri().min(5).max(1000).required(),
   commenicalNumber: Joi.string().min(0).max(400).required(),
 })
 const CompanyLoginJoi = Joi.object({
-    email: Joi.string()
-    .email({ tlds: { allow: true } })
-    .min(2)
-    .max(200)
-    .required(),
+    email: Joi.string(),
   password: Joi.string().min(6).max(100).required(),
 })
 

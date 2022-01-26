@@ -8,11 +8,10 @@ const router = express.Router()
 
 router.post("/", checkToken, ValidateBody(CertificatesJoi), async (req, res) => {
   try {
-    const { title, authority, certificateFile } = req.body
+    const { title, authority } = req.body
     const certificateBody = new Certificate({
       title,
       authority,
-      certificateFile,
       owner: req.userId,
     })
     await certificateBody.save()
