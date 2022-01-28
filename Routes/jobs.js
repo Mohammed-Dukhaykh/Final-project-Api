@@ -156,6 +156,7 @@ router.post("/apply/:id", CheckId, ValidateBody(ApplyJobJoi), checkToken, async 
         })
     )
 
+    // return console.log("hhhh", newAnswer)
     const answerPromise = newAnswer.map(answer => answer.save())
     await Promise.all(answerPromise)
     const answerId = newAnswer.map(answer => answer._id)
@@ -250,7 +251,7 @@ router.put(
       //     decided to pursue more suitable candidates for ${job.title}
       //     best Regards ${job.owner.companyName} Team. `, // html body
       //   })
-      res.json(newProgress)
+        res.json(newProgress)
       // }
     } catch (error) {
       console.log(error)
